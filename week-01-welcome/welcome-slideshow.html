@@ -303,6 +303,10 @@
     border: 1px solid var(--line);
     border-radius: 8px;
   }
+  a.contact-ig { text-decoration: none; color: inherit; cursor: pointer; transition: opacity 0.15s ease; }
+  a.contact-ig:hover { opacity: 0.7; }
+  .contact-ig-row a:has(.contact-qr) { display: inline-block; transition: opacity 0.15s ease; }
+  .contact-ig-row a:has(.contact-qr):hover { opacity: 0.7; }
 
   .contact-note {
     margin-top: 5vh;
@@ -639,11 +643,13 @@
     <div class="eyebrow">Stay in touch</div>
     <div class="contact-email">ggibson1@berklee.edu</div>
     <div class="contact-ig-row">
-      <div class="contact-ig">
+      <a class="contact-ig" href="https://www.instagram.com/seugeorge" target="_blank" rel="noopener">
         <div class="ig-handle">@seugeorge</div>
         <small>Instagram</small>
-      </div>
-      <img class="contact-qr" src="qr_seugeorge_instagram.png" alt="Scan this QR code to open @seugeorge on Instagram" />
+      </a>
+      <a href="https://www.instagram.com/seugeorge" target="_blank" rel="noopener" aria-label="Open @seugeorge on Instagram">
+        <img class="contact-qr" src="qr_seugeorge_instagram.png" alt="Scan this QR code to open @seugeorge on Instagram" />
+      </a>
     </div>
     <p class="contact-note">"@seugeorge" is a tribute to <em>Seu Jorge</em>, the Brazilian musician whose Portuguese covers of David Bowie songs helped me learn Portuguese.</p>
   </section>
