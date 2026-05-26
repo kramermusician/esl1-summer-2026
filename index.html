@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESL1 — Summer 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink:      #1a1a1a;
+      --mid:      #555;
+      --light:    #888;
+      --border:   #ddd;
+      --bg:       #f7f7f5;
+      --card:     #ffffff;
+      --navy:     #1c2b4a;
+      --accent:   #2d5fa6;
+      --accent-lt:#e8eef8;
+      --radius:   10px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .app-header {
+      background: var(--navy);
+      color: #fff;
+      padding: 14px 28px;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+    .app-header h1 { font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; }
+    .app-header span { font-size: 0.8rem; opacity: 0.6; }
+
+    .container { max-width: 700px; margin: 0 auto; padding: 56px 24px 80px; }
+    .hub-title { font-size: 2rem; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
+    .hub-subtitle { color: var(--mid); font-size: 0.95rem; margin-bottom: 36px; }
+    .week-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .week-list a {
+      display: block;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
+    }
+    .week-list a:hover {
+      border-color: var(--accent);
+      background: var(--accent-lt);
+    }
+    .week-list a:active { transform: translateY(1px); }
+    .week-num { font-size: 0.8rem; color: var(--light); text-transform: uppercase; letter-spacing: 0.06em; }
+    .week-title { font-size: 1.1rem; font-weight: 600; color: var(--accent); margin-top: 2px; }
+    .week-desc { font-size: 0.9rem; color: var(--mid); margin-top: 4px; }
+
+    footer {
+      text-align: center;
+      color: var(--light);
+      font-size: 0.75rem;
+      font-style: italic;
+      padding: 24px;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>ESL1 — English as a Second Language, Level 1</h1>
+    <span>Berklee College of Music · Summer 2026</span>
+  </header>
+
+  <main class="container">
+    <h2 class="hub-title">Course Materials by Week</h2>
+    <p class="hub-subtitle">Readings, worksheets, and weekly checklists. New weeks appear here as the semester unfolds. Submit graded work on Canvas.</p>
+
+    <ul class="week-list">
+      <li>
+        <a href="week-01-welcome/">
+          <div class="week-num">Week 1 · May 25 – May 31</div>
+          <div class="week-title">Welcome</div>
+          <div class="week-desc">Welcome essay, a walk along the Charles, and your first voice message.</div>
+        </a>
+      </li>
+    </ul>
+  </main>
+
+  <footer>Prof. Kramer Gibson, Berklee College of Music</footer>
+</body>
+</html>
