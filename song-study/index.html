@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ESL1 — Summer 2026</title>
+  <title>Song Study — ESL1 Summer 2026</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -37,10 +37,18 @@
     .app-header span { font-size: 0.8rem; opacity: 0.6; }
 
     .container { max-width: 700px; margin: 0 auto; padding: 56px 24px 80px; }
+    .back-link {
+      display: inline-block;
+      color: var(--mid);
+      text-decoration: none;
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+    }
+    .back-link:hover { color: var(--accent); }
     .hub-title { font-size: 2rem; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
     .hub-subtitle { color: var(--mid); font-size: 0.95rem; margin-bottom: 36px; }
-    .week-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-    .week-list a {
+    .song-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .song-list a {
       display: block;
       background: var(--card);
       border: 1px solid var(--border);
@@ -50,14 +58,14 @@
       text-decoration: none;
       transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
     }
-    .week-list a:hover {
+    .song-list a:hover {
       border-color: var(--accent);
       background: var(--accent-lt);
     }
-    .week-list a:active { transform: translateY(1px); }
-    .week-num { font-size: 0.8rem; color: var(--light); text-transform: uppercase; letter-spacing: 0.06em; }
-    .week-title { font-size: 1.1rem; font-weight: 600; color: var(--accent); margin-top: 2px; }
-    .week-desc { font-size: 0.9rem; color: var(--mid); margin-top: 4px; }
+    .song-list a:active { transform: translateY(1px); }
+    .song-artist { font-size: 0.8rem; color: var(--light); text-transform: uppercase; letter-spacing: 0.06em; }
+    .song-title { font-size: 1.1rem; font-weight: 600; color: var(--accent); margin-top: 2px; }
+    .song-desc { font-size: 0.9rem; color: var(--mid); margin-top: 4px; }
 
     footer {
       text-align: center;
@@ -75,36 +83,16 @@
   </header>
 
   <main class="container">
-    <h2 class="hub-title">Course Materials by Week</h2>
-    <p class="hub-subtitle">Readings, worksheets, and weekly checklists. New weeks appear here as the semester unfolds. Submit graded work on Canvas.</p>
+    <a href="../" class="back-link">← Back to course materials</a>
+    <h2 class="hub-title">Song Study</h2>
+    <p class="hub-subtitle">Singing worksheets built around songs we listen to in class. Each packet has lyrics, vocabulary, listening tasks, and pronunciation practice.</p>
 
-    <ul class="week-list">
+    <ul class="song-list">
       <li>
-        <a href="about.html">
-          <div class="week-num">Meet your instructor</div>
-          <div class="week-title">About Prof. Gibson</div>
-          <div class="week-desc">A short bio, my email, and summer office hours.</div>
-        </a>
-      </li>
-      <li>
-        <a href="syllabus-summer-2026.pdf">
-          <div class="week-num">Course document</div>
-          <div class="week-title">Syllabus (Summer 2026)</div>
-          <div class="week-desc">Course info, grading, the 12-week schedule, and policies. Read this first.</div>
-        </a>
-      </li>
-      <li>
-        <a href="week-01-welcome/">
-          <div class="week-num">Week 1 · May 25 – May 31</div>
-          <div class="week-title">Welcome</div>
-          <div class="week-desc">Welcome essay, a walk along the Charles, and your first voice message.</div>
-        </a>
-      </li>
-      <li>
-        <a href="song-study/">
-          <div class="week-num">Listening & singing</div>
-          <div class="week-title">Song Study</div>
-          <div class="week-desc">Worksheets built around songs we listen to in class. New songs added through the semester.</div>
+        <a href="no-surprises-radiohead.pdf">
+          <div class="song-artist">Radiohead</div>
+          <div class="song-title">No Surprises</div>
+          <div class="song-desc">A quiet song about wanting an easy life. Vocabulary, listening, and a singing worksheet.</div>
         </a>
       </li>
     </ul>
