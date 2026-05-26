@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Welcome to ESL1</title>
+<style>
+  :root {
+    --paper: #F1ECE2;
+    --ink: #2C3742;
+    --ink-soft: #6E7884;
+    --khaki: #A8866A;
+    --khaki-soft: #D9C8AA;
+    --sage: #6B8A82;
+    --blue: #5A7A95;
+    --line: #D8CFBF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4vh 8vw;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 600ms ease, transform 600ms ease;
+    pointer-events: none;
+    text-align: center;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .eyebrow {
+    font-size: clamp(0.78rem, 1vw, 0.95rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 3vh;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 0.45em;
+    height: 0.45em;
+    background: var(--khaki);
+    border-radius: 50%;
+  }
+
+  .slide-number {
+    position: absolute;
+    top: 4vh;
+    left: 4vw;
+    font-family: Georgia, ui-serif, serif;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .slide-number::after {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 1px;
+    background: var(--line);
+    margin-top: 4px;
+  }
+
+  .headline {
+    font-family: Georgia, "Times New Roman", ui-serif, serif;
+    font-weight: 400;
+    font-size: clamp(2.6rem, 6vw, 5.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    max-width: 18ch;
+  }
+
+  .headline .accent {
+    color: var(--khaki);
+    font-style: italic;
+  }
+
+  .sub {
+    margin-top: 3.5vh;
+    font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 38ch;
+    font-weight: 400;
+  }
+
+  .two-line {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5vh;
+  }
+
+  .two-line .quiet { color: var(--ink-soft); }
+
+  .word-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.2vh 2.4vw;
+    margin-top: 2vh;
+    max-width: 56vw;
+  }
+
+  .word-cloud span {
+    font-family: Georgia, ui-serif, serif;
+    font-size: clamp(1.5rem, 3.2vw, 2.6rem);
+    color: var(--ink);
+    opacity: 0.95;
+  }
+
+  .word-cloud span:nth-child(3n+1) { color: var(--khaki); }
+  .word-cloud span:nth-child(3n+2) { color: var(--sage); }
+  .word-cloud span:nth-child(3n)   { color: var(--ink); font-style: italic; }
+
+  /* Cascading-juggle background: fills the slide, sits behind text. */
+  .ball-cascade {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Each .orbiter is the animated point in space; the .ball nests inside
+     it and is just decoration. Separating motion from centering avoids
+     calc() inside transform keyframes (which interpolates poorly in some
+     browsers and can collapse the path). */
+  .ball-cascade .orbiter {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+  }
+
+  .ball-cascade .ball {
+    position: absolute;
+    left: -2.2vw;
+    top: -2.2vw;
+    width: clamp(34px, 4.4vw, 62px);
+    height: clamp(34px, 4.4vw, 62px);
+    border-radius: 50%;
+    background: var(--khaki);
+    box-shadow: 0 6px 0 var(--khaki-soft);
+    opacity: 0.9;
+  }
+
+  /* Keep text crisply above the flowing balls. */
+  .cascade-slide > .eyebrow,
+  .cascade-slide > .headline,
+  .cascade-slide > .sub { position: relative; z-index: 2; }
+
+  /* Run the cascade unconditionally so by the time the slide fades in, the
+     three balls are already phased to three distinct points on the loop. */
+  .ball-cascade .orbiter {
+    animation: cascade 3s linear infinite;
+  }
+
+  .ball-cascade.paused .orbiter { animation-play-state: paused; }
+
+  .pause-btn {
+    position: absolute;
+    bottom: 3vh;
+    right: 3vw;
+    z-index: 3;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.4em 0.9em;
+    border-radius: 999px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 150ms ease, background 150ms ease;
+  }
+  .pause-btn:hover { opacity: 1; background: var(--khaki-soft); }
+
+  /* Movements demo: 16 seated, classroom-doable action words students
+     can act out on the spot to feel the "body learns faster" idea. */
+  .movements-toggle {
+    position: relative;
+    z-index: 2;
+    margin-top: 2.4vh;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.45em 1em;
+    border-radius: 999px;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 150ms ease, background 150ms ease;
+  }
+  .movements-toggle:hover { opacity: 1; background: var(--khaki-soft); }
+
+  .movements {
+    position: relative;
+    z-index: 2;
+    margin-top: 2vh;
+    display: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6vh 1vw;
+    width: min(70vw, 720px);
+    padding: 1.4vh 1.4vw;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    backdrop-filter: blur(2px);
+  }
+  .movements.show { display: grid; }
+  .movements span {
+    text-align: center;
+    font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+    padding: 0.6vh 0.4vw;
+    color: var(--ink);
+    border-bottom: 1px dashed var(--line);
+  }
+  .movements span:nth-last-child(-n+4) { border-bottom: none; }
+  .movements span.advanced { font-style: italic; color: var(--blue); }
+
+  /* Contact slide (10): centered contact info, no background animation. */
+
+  .contact-email {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 5.6vw, 4.8rem);
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    margin-top: 1vh;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .contact-ig-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4vw;
+    margin-top: 4vh;
+  }
+  .contact-ig {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+  }
+  .contact-ig .ig-handle {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: clamp(1.6rem, 4.2vw, 3.6rem);
+    color: var(--blue);
+  }
+  .contact-ig small {
+    margin-top: 0.6em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .contact-qr {
+    width: clamp(140px, 18vw, 240px);
+    height: auto;
+    background: #fff;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+
+  .contact-note {
+    margin-top: 5vh;
+    max-width: 60vw;
+    font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+    color: var(--ink);
+    line-height: 1.6;
+    text-align: center;
+  }
+  .contact-note em { font-style: italic; color: var(--blue); }
+
+  /* Three balls, each phased 1/3 of a cycle apart - the actual 3-ball
+     juggler's cascade. Negative delays start each ball already partway
+     through the loop so they never cluster at frame zero. */
+  .ball-cascade .orbiter:nth-child(1) { animation-delay: 0s;  }
+  .ball-cascade .orbiter:nth-child(2) { animation-delay: -1s; }
+  .ball-cascade .orbiter:nth-child(3) { animation-delay: -2s; }
+
+  .ball-cascade .orbiter:nth-child(1) .ball { background: var(--khaki); box-shadow: 0 6px 0 var(--khaki-soft); }
+  .ball-cascade .orbiter:nth-child(2) .ball { background: var(--sage);  box-shadow: 0 6px 0 var(--line); }
+  .ball-cascade .orbiter:nth-child(3) .ball { background: var(--blue);  box-shadow: 0 6px 0 var(--line); }
+
+  /* Figure-eight juggler's cascade around slide center. Pure translate
+     in vw/vh - no calc, no -50% - so interpolation is reliable. */
+  @keyframes cascade {
+    0%   { transform: translate( 32vw,  28vh); }
+    25%  { transform: translate(-14vw, -26vh); }
+    50%  { transform: translate(-32vw,  28vh); }
+    75%  { transform: translate( 14vw, -26vh); }
+    100% { transform: translate( 32vw,  28vh); }
+  }
+
+  .activity-list {
+    list-style: none;
+    margin-top: 2vh;
+    display: grid;
+    gap: 1.6vh;
+    text-align: left;
+  }
+
+  .activity-list li {
+    font-family: Georgia, ui-serif, serif;
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    color: var(--ink);
+    padding-left: 1.4em;
+    position: relative;
+  }
+
+  .activity-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 0.8em;
+    height: 2px;
+    background: var(--khaki);
+  }
+
+  .greeting-row {
+    margin-top: 3vh;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.6vw 3.2vw;
+    justify-content: center;
+    max-width: 60vw;
+  }
+
+  .greeting {
+    font-family: Georgia, ui-serif, serif;
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    color: var(--ink);
+  }
+
+  .greeting small {
+    display: block;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 0.6em;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.3em;
+  }
+
+  .closing-name {
+    margin-top: 4vh;
+    font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  .closing-name strong {
+    font-weight: 400;
+    color: var(--ink);
+    display: block;
+    margin-top: 0.4em;
+    letter-spacing: 0.04em;
+  }
+
+  /* Controls */
+  .controls {
+    position: fixed;
+    bottom: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    z-index: 10;
+  }
+
+  .ctrl {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 1rem;
+    display: grid;
+    place-items: center;
+    transition: background 200ms ease, border-color 200ms ease;
+  }
+
+  .ctrl:hover {
+    background: var(--khaki-soft);
+    border-color: var(--khaki-soft);
+  }
+
+  .counter {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+    min-width: 4ch;
+    text-align: center;
+  }
+
+  .dots {
+    position: fixed;
+    bottom: 1.2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 200ms ease, transform 200ms ease;
+  }
+
+  .dot.active {
+    background: var(--khaki);
+    transform: scale(1.3);
+  }
+
+  .attribution {
+    position: fixed;
+    bottom: 1.2vh;
+    right: 2vw;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    z-index: 10;
+  }
+
+  .hint {
+    position: fixed;
+    top: 2vh;
+    right: 2vw;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    z-index: 10;
+  }
+
+  @media (max-width: 700px) {
+    .word-cloud, .greeting-row { max-width: 90vw; }
+    .controls { gap: 0.8rem; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- 1 -->
+  <section class="slide active">
+    <div class="slide-number">01</div>
+    <div class="eyebrow">ESL1 / Summer</div>
+    <h1 class="headline">Welcome to a class about how English <span class="accent">really</span> gets in.</h1>
+    <p class="sub">It is not about being perfect. (Nobody is.) It is about your body, your ears, and the city outside this room.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide cascade-slide">
+    <div class="slide-number">02</div>
+    <div class="ball-cascade" id="ballCascade">
+      <div class="orbiter"><div class="ball"></div></div>
+      <div class="orbiter"><div class="ball"></div></div>
+      <div class="orbiter"><div class="ball"></div></div>
+    </div>
+    <button class="pause-btn" id="pauseCascade" aria-pressed="false" aria-label="Pause juggling animation">⏸ Pause</button>
+    <div class="eyebrow">Idea 1</div>
+    <h1 class="headline">The body learns <span class="accent">faster</span> than the brain.</h1>
+    <p class="sub">My dad taught me to juggle in third grade. My hands learned the rhythm before my brain did. Words are the same. Move while you say them. The word stays.</p>
+    <button class="movements-toggle" id="movementsToggle" aria-expanded="false" aria-controls="movementsList">Show movements</button>
+    <div class="movements" id="movementsList" role="list" aria-label="Action words to act out at your seat">
+      <span role="listitem">dodge</span>
+      <span role="listitem">hop</span>
+      <span role="listitem">swipe</span>
+      <span role="listitem">chop</span>
+      <span role="listitem">snap</span>
+      <span role="listitem">clap</span>
+      <span role="listitem">tap</span>
+      <span role="listitem">point</span>
+      <span role="listitem">wave</span>
+      <span role="listitem">nod</span>
+      <span role="listitem">shake</span>
+      <span role="listitem">stomp</span>
+      <span role="listitem">flick</span>
+      <span role="listitem">reach</span>
+      <span role="listitem">lean</span>
+      <span role="listitem">wiggle</span>
+      <span role="listitem" class="advanced">recoil</span>
+      <span role="listitem" class="advanced">pivot</span>
+      <span role="listitem" class="advanced">gesticulate</span>
+      <span role="listitem" class="advanced">contort</span>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="slide-number">03</div>
+    <div class="eyebrow">Idea 2</div>
+    <div class="two-line">
+      <h1 class="headline">You forget the flashcard.</h1>
+      <h1 class="headline quiet">You do not forget the <span class="accent">soup</span>.</h1>
+    </div>
+    <p class="sub">I learned my first Portuguese in restaurants in Massachusetts. I held the plate. I asked the cook for the word. The word came home with me.</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="slide-number">04</div>
+    <div class="eyebrow">Idea 3</div>
+    <h1 class="headline">You already know more English than you think.</h1>
+    <div class="word-cloud" aria-hidden="true">
+      <span>piano</span>
+      <span>forte</span>
+      <span>jazz</span>
+      <span>rhythm</span>
+      <span>guitar</span>
+      <span>microphone</span>
+      <span>solo</span>
+      <span>album</span>
+      <span>tempo</span>
+      <span>studio</span>
+      <span>concert</span>
+      <span>melody</span>
+    </div>
+    <p class="sub">Music has been speaking English to you for years. (You did not even notice.) We start there.</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="slide-number">05</div>
+    <div class="eyebrow">Idea 4</div>
+    <div class="two-line">
+      <h1 class="headline">Mistakes are not failures.</h1>
+      <h1 class="headline quiet">They are how the brain <span class="accent">learns</span>.</h1>
+    </div>
+    <p class="sub">When you drop the ball, you learn where your hand should be. When you say the wrong word, your mouth learns the right one. Drop. Try again. That is most of the class, honestly.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="slide-number">06</div>
+    <div class="eyebrow">Idea 5</div>
+    <h1 class="headline">Your other languages <span class="accent">help</span> you. They do not stop you.</h1>
+    <div class="greeting-row">
+      <div class="greeting">Olá<small>Portuguese</small></div>
+      <div class="greeting">Hola<small>Spanish</small></div>
+      <div class="greeting">Bonjour<small>French</small></div>
+      <div class="greeting">안녕하세요<small>Korean</small></div>
+      <div class="greeting">你好<small>Mandarin</small></div>
+      <div class="greeting">こんにちは<small>Japanese</small></div>
+    </div>
+    <p class="sub">Bring every language you have into this room. They are not in your way. (They are part of how I will teach you.)</p>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="slide-number">07</div>
+    <div class="eyebrow">Idea 6</div>
+    <h1 class="headline">Boston is part of our <span class="accent">classroom</span>.</h1>
+    <p class="sub">We will walk on Mass Ave. We will ride the T. We will listen to people order coffee. The city teaches you things this room cannot.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="slide-number">08</div>
+    <div class="eyebrow">What we will do together</div>
+    <ul class="activity-list">
+      <li>Write a little, every class.</li>
+      <li>Walk and listen, every week.</li>
+      <li>Juggle, sometimes. (Yes, really.)</li>
+      <li>Talk about your songs, your food, your home.</li>
+      <li>Be wrong out loud, with friends.</li>
+    </ul>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="slide-number">09</div>
+    <div class="eyebrow">A promise</div>
+    <h1 class="headline">By August, you will <span class="accent">surprise</span> yourself.</h1>
+    <p class="sub">I have watched it happen every summer for years. It will happen to you too. (Trust me on this one.)</p>
+    <div class="closing-name">
+      see you in class
+      <strong>Prof. Kramer Gibson, Berklee College of Music</strong>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide contact-slide">
+    <div class="slide-number">10</div>
+    <div class="eyebrow">Stay in touch</div>
+    <div class="contact-email">ggibson1@berklee.edu</div>
+    <div class="contact-ig-row">
+      <div class="contact-ig">
+        <div class="ig-handle">@seugeorge</div>
+        <small>Instagram</small>
+      </div>
+      <img class="contact-qr" src="qr_seugeorge_instagram.png" alt="Scan this QR code to open @seugeorge on Instagram" />
+    </div>
+    <p class="contact-note">"@seugeorge" is a tribute to <em>Seu Jorge</em>, the Brazilian musician whose Portuguese covers of David Bowie songs helped me learn Portuguese.</p>
+  </section>
+
+</div>
+
+<nav class="controls" aria-label="Slide controls">
+  <button class="ctrl" id="prev" aria-label="Previous slide">&larr;</button>
+  <span class="counter"><span id="curr">1</span> / <span id="total">9</span></span>
+  <button class="ctrl" id="next" aria-label="Next slide">&rarr;</button>
+</nav>
+
+<div class="dots" id="dots" aria-hidden="true"></div>
+
+<div class="hint">arrow keys / space</div>
+<div class="attribution">Prof. Kramer Gibson, Berklee College of Music</div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsWrap = document.getElementById('dots');
+  const curr = document.getElementById('curr');
+  const total = document.getElementById('total');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+
+  let i = 0;
+  total.textContent = slides.length;
+
+  // Build dots
+  slides.forEach((_, idx) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (idx === 0 ? ' active' : '');
+    d.addEventListener('click', () => go(idx));
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function go(n) {
+    if (n < 0 || n >= slides.length) return;
+    slides[i].classList.remove('active');
+    dots[i].classList.remove('active');
+    i = n;
+    slides[i].classList.add('active');
+    dots[i].classList.add('active');
+    curr.textContent = i + 1;
+  }
+
+  function next() { go(Math.min(i + 1, slides.length - 1)); }
+  function prev() { go(Math.max(i - 1, 0)); }
+
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prev();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      go(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      go(slides.length - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      const el = document.documentElement;
+      if (!document.fullscreenElement) el.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+  });
+
+  // Touch swipe
+  let touchStartX = null;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) (dx < 0 ? next : prev)();
+    touchStartX = null;
+  }, { passive: true });
+
+  // Show / hide the movements table on slide 2.
+  const movToggle = document.getElementById('movementsToggle');
+  const movList = document.getElementById('movementsList');
+  if (movToggle && movList) {
+    movToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const shown = movList.classList.toggle('show');
+      movToggle.setAttribute('aria-expanded', String(shown));
+      movToggle.textContent = shown ? 'Hide movements' : 'Show movements';
+    });
+  }
+
+  // Pause / resume the juggling cascade on slide 2.
+  const cascade = document.getElementById('ballCascade');
+  const pauseBtn = document.getElementById('pauseCascade');
+  if (cascade && pauseBtn) {
+    pauseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const nowPaused = cascade.classList.toggle('paused');
+      pauseBtn.setAttribute('aria-pressed', String(nowPaused));
+      pauseBtn.textContent = nowPaused ? '▶ Play' : '⏸ Pause';
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
